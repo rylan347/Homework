@@ -1,6 +1,4 @@
 
-# Define the necessary tables and constants
-
 # Permuted Choice Table 1 (PC-1)
 
 PC_1 = [
