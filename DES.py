@@ -1,3 +1,4 @@
+import sys
 
 # Permuted Choice Table 1 (PC-1)
 
@@ -136,12 +137,10 @@ def hex_to_bin(hex_str):
     """ Converts the hex string to int base 16. zfill ensures that
     the hex digit is 4 bits. Returns a list of 1s and 0s"""
     bin_str = bin(int(hex_str, 16))[2:].zfill(len(hex_str) * 4)
-    # ex. bin_str = '0001101000111111'
     return [int(b) for b in bin_str]
-    # ex. bits = [0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
 
 def bin_to_hex(bin_list):
-    """ Join list of bits into string, convert bits to int, 
+    """ Join list of bits into string, convert bits to int,
     then convert to hex string and remove 0x prefix."""
     hex_str = hex(int(''.join(map(str, bin_list)), 2))[2:].upper()
     return hex_str.zfill(len(bin_list)//4)
@@ -170,7 +169,7 @@ def sbox_substitute(bits):
         # s-box lookup
         sbox_val = S_BOX[i][row][column]
         # Convert s-box values into 4-bit
-        bin_val = [int(b) for b in bin(sbox_val[2:].zfill(4))]
+        bin_val = [int(b) for b in bin(sbox_val)[2:].zfill(4)]
         result.extend(bin_val)
     return result
 
@@ -203,6 +202,78 @@ def generate_subkeys(key):
         subkeys.append(subkey)
     return subkeys
 
-def des_encrypt_block(plaintext_block, subkeys):
-    # Initial permutation
-    pass
+def encrypt_block(plaintext_block, subkeys):
+    """ Encrypts a 64-bit block of plaintext """
+    # Initial Permutation
+    block = permute(plaintext_block, IP)
+    L, R = block[:32], block[32:]
+    # 16 rounds
+    for i in range(16):
+        L_new = R
+        R_new = xor(L, f_function(R, subkeys[i]))
+        L, R = L_new, R_new
+    # Combine R16 and L16
+    combined = R + L
+    # Final Permutation
+    ciphertext_block = permute(combined, IP_INV)
+    return ciphertext_block
+
+def decrypt_block(ciphertext_block, subkeys):
+    """ Same as the encryption block, but in reverse order. """
+    # Initial Permutation
+    block = permute(ciphertext_block, IP)
+    L, R = block[:32], block[32:]
+    # 16 rounds (reverse order of subkeys)
+    for i in range(15, -1, -1):
+        L_new = R
+        R_new = xor(L, f_function(R, subkeys[i]))
+        L, R = L_new, R_new
+    # Combine R16 and L16
+    combined = R + L
+    # Final Permutation
+    plaintext_block = permute(combined, IP_INV)
+    return plaintext_block
+
+# Functions to encrypt or decrypt data
+def encrypt(plaintext_hex, key_hex):
+    key_bits = hex_to_bin(key_hex)
+    subkeys = generate_subkeys(key_bits)
+    plaintext_bits = hex_to_bin(plaintext_hex)
+    ciphertext_bits = encrypt_block(plaintext_bits, subkeys)
+    ciphertext_hex = bin_to_hex(ciphertext_bits)
+    return ciphertext_hex
+
+def decrypt(ciphertext_hex, key_hex):
+    key_bits = hex_to_bin(key_hex)
+    subkeys = generate_subkeys(key_bits)
+    ciphertext_bits = hex_to_bin(ciphertext_hex)
+    plaintext_bits = decrypt_block(ciphertext_bits, subkeys)
+    plaintext_hex = bin_to_hex(plaintext_bits)
+    return plaintext_hex
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage:")
+        print("  To encrypt: python des.py encrypt <plaintext_hex> <key_hex>")
+        print("  To decrypt: python des.py decrypt <ciphertext_hex> <key_hex>")
+        sys.exit(1)
+
+    mode = sys.argv[1].lower()
+    input_hex = sys.argv[2]
+    key_hex = sys.argv[3]
+
+    # Check to make sure input and key are 16 hex chars (64 bits)
+    input_hex = input_hex.upper().ljust(16, '0')[:16]
+    key_hex = key_hex.upper().ljust(16, '0')[:16]
+
+    if mode == 'encrypt':
+        ciphertext_hex = encrypt(input_hex, key_hex)
+        print(f'Ciphertext: {ciphertext_hex}')
+    elif mode == 'decrypt':
+        plaintext_hex = decrypt(input_hex, key_hex)
+        print(f'Plaintext: {plaintext_hex}')
+    else:
+        print("Invalid mode. Use 'encrypt' or 'decrypt'.")
+
+if __name__ == "__main__":
+    main()
