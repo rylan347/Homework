@@ -123,3 +123,18 @@ S_BOX = {
         [ 2, 1,14, 7, 4,10, 8,13,15,12, 9, 0, 3, 5, 6,11]
     ]
 }
+
+# Left Shifts per Round 1 - 16
+SHIFT_SCHEDULE = [
+    1, 1, 2, 2, 2, 2, 2, 2,
+    1, 2, 2, 2, 2, 2, 2, 1
+]
+
+def hex_to_bin(hex_str):
+    """ Converts the hex string to int base 16. zfill ensures that
+    the hex digit is 4 bits. Returns a list of 1s and 0s"""
+    bin_str = bin(int(hex_str, 16))[2:].zfill(len(hex_str) * 4)
+    # ex. bin_str = '0001101000111111'
+    return [int(b) for b in bin_str]
+    # ex. bits = [0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+
