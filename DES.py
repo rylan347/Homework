@@ -124,11 +124,13 @@ S_BOX = {
     ]
 }
 
-# Left Shifts per Round 1 - 16
+# Left bit shifts per Round 1 - 16
 SHIFT_SCHEDULE = [
     1, 1, 2, 2, 2, 2, 2, 2,
     1, 2, 2, 2, 2, 2, 2, 1
 ]
+
+# Helper functions
 
 def hex_to_bin(hex_str):
     """ Converts the hex string to int base 16. zfill ensures that
@@ -157,17 +159,23 @@ def xor(bits1, bits2):
     return [b1 ^ b2 for b1, b2 in zip(bits1, bits2)]
 
 def sbox_substitute(bits):
+    """ Substitutes the 48-bit input using the s-boxes into a 32 bit output. """
     result = []
     for i in range(8):
+        # Divide the blocks into 6 bits
         block = bits[i*6:(i+1)*6]
+        # Determine row and columns for s-box lookup
         row = (block[0] << 1) + block[5]
         column = (block[1] << 3) + (block[2] << 2) + (block[3] << 1) + block[4]
+        # s-box lookup
         sbox_val = S_BOX[i][row][column]
+        # Convert s-box values into 4-bit
         bin_val = [int(b) for b in bin(sbox_val[2:].zfill(4))]
         result.extend(bin_val)
     return result
 
 def f_function(R, K):
+    """ Takes 32-bit right and 48-bit subkey K"""
     # Expansion
     R_expansion = permute(R, E)
     # XOR with subkey
@@ -179,9 +187,10 @@ def f_function(R, K):
     return R_P
 
 def generate_subkeys(key):
-    # PC-1 1
+    """ Generates 16 subkeys, one for each round"""
+    # PC-1
     key_pc1 = permute(key, PC_1)
-    # Split into C and D
+    # Split into C and D halves
     C = key_pc1[:28]
     D = key_pc1[28:]
     subkeys = []
@@ -193,3 +202,7 @@ def generate_subkeys(key):
         subkey = permute(C + D, PC_2)
         subkeys.append(subkey)
     return subkeys
+
+def des_encrypt_block(plaintext_block, subkeys):
+    # Initial permutation
+    pass
