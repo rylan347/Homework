@@ -138,3 +138,58 @@ def hex_to_bin(hex_str):
     return [int(b) for b in bin_str]
     # ex. bits = [0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1]
 
+def bin_to_hex(bin_list):
+    """ Join list of bits into string, convert bits to int, 
+    then convert to hex string and remove 0x prefix."""
+    hex_str = hex(int(''.join(map(str, bin_list)), 2))[2:].upper()
+    return hex_str.zfill(len(bin_list)//4)
+
+def permute(bits, table):
+    """ Reorders bits based on permutation table. """
+    return [bits[i - 1] for i in table]
+
+def left_shift(bits, n):
+    """ Left shift bit rotation by n. """
+    return bits[n:] + bits[:n]
+
+def xor(bits1, bits2):
+    """ Acts as xor bitwise operand for parameter pairs. """
+    return [b1 ^ b2 for b1, b2 in zip(bits1, bits2)]
+
+def sbox_substitute(bits):
+    result = []
+    for i in range(8):
+        block = bits[i*6:(i+1)*6]
+        row = (block[0] << 1) + block[5]
+        column = (block[1] << 3) + (block[2] << 2) + (block[3] << 1) + block[4]
+        sbox_val = S_BOX[i][row][column]
+        bin_val = [int(b) for b in bin(sbox_val[2:].zfill(4))]
+        result.extend(bin_val)
+    return result
+
+def f_function(R, K):
+    # Expansion
+    R_expansion = permute(R, E)
+    # XOR with subkey
+    R_xor_K = xor(R_expansion, K)
+    # S-box substitution
+    R_sbox = sbox_substitute(R_xor_K)
+    # P Permutation
+    R_P = permute(R_sbox, P)
+    return R_P
+
+def generate_subkeys(key):
+    # PC-1 1
+    key_pc1 = permute(key, PC_1)
+    # Split into C and D
+    C = key_pc1[:28]
+    D = key_pc1[28:]
+    subkeys = []
+    for shift in SHIFT_SCHEDULE:
+        # Left shifts
+        C = left_shift(C, shift)
+        D = left_shift(D, shift)
+        # PC-2
+        subkey = permute(C + D, PC_2)
+        subkeys.append(subkey)
+    return subkeys
