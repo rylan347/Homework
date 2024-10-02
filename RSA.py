@@ -53,12 +53,13 @@ def generate_keys(P, Q):
         raise ValueError("Both numbers must be prime.")
     elif P == Q:
         raise ValueError("P and Q need to be different values.")
-    # Computer n and ph(n)
-    phi_n = (P-1)(Q-1)
+    # Computer n and phi(n)
+    n = P * Q
+    phi_n = (P-1) * (Q-1)
     # Choose e
     e = choose_e(phi_n)
     # Choose d
-    d = choose_d(2, phi_n)
+    d = choose_d(e, phi_n)
     # Return public and private keys
     return ((n, e), (n, d))
 
@@ -72,7 +73,14 @@ def main():
         sys.exit(1)
     try:
         public_key, private_key = generate_keys(P, Q)
+    except ValueError as ve:
+        print(ve)
+        sys.exit(1)
+    except Exception as ex:
+        print(ex)
+        sys.exit(1)
+    print(f"\nPublic Key (n, e): {public_key}")
+    print(f"Private Key (n, d): {private_key}")
 
-
-
-print(is_prime(51))
+if __name__ == "__main__":
+    main()
