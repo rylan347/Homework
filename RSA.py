@@ -37,7 +37,7 @@ def choose_d(e, phi_n):
     def egcd(a, b):
         if a == 0:
             return b, 0, 1
-        gcd_val, x1, y1 = egd(b % a, a)
+        gcd_val, x1, y1 = egcd(b % a, a)
         x = y1 - (b // a) * x1
         y = x1
         return gcd_val, x, y
@@ -53,5 +53,26 @@ def generate_keys(P, Q):
         raise ValueError("Both numbers must be prime.")
     elif P == Q:
         raise ValueError("P and Q need to be different values.")
+    # Computer n and ph(n)
+    phi_n = (P-1)(Q-1)
+    # Choose e
+    e = choose_e(phi_n)
+    # Choose d
+    d = choose_d(2, phi_n)
+    # Return public and private keys
+    return ((n, e), (n, d))
+
+def main():
+    # Accept user input for P and Q
+    try:
+        P = int(input("Enter a prime number P: "))
+        Q = int(input("Enter a prime number Q: "))
+    except ValueError:
+        print("Please enter an integer for P and Q")
+        sys.exit(1)
+    try:
+        public_key, private_key = generate_keys(P, Q)
+
+
 
 print(is_prime(51))
