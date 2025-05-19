@@ -1,0 +1,14 @@
+# C compatible library for Foregin Function Interface
+[package]
+name = "echo_server_threads"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "echo_server_threads"
+crate-type = ["cdylib"]  # Dynamic library compatible with C
+
+# ThreadPool dependencies
+[dependencies]
+threadpool = "1.8.1"
+libc = "0.2.153"
